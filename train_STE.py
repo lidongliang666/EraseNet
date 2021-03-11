@@ -23,7 +23,7 @@ torch.set_num_threads(5)
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"    ### set the gpu as No....
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--numOfWorkers', type=int, default=0,
+parser.add_argument('--numOfWorkers', type=int, default=4,
                     help='workers for dataloader')
 parser.add_argument('--modelsSavePath', type=str, default='',
                     help='path for saving models')
