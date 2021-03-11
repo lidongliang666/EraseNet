@@ -3,6 +3,7 @@ import math
 import argparse
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from PIL import Image
@@ -117,7 +118,22 @@ for i in range(1, num_epochs + 1):
             G_loss = G_loss.sum()
             G_optimizer.zero_grad()
             G_loss.backward()
-            G_optimizer.step()       
+            G_optimizer.step()  
+
+            criterion.discriminator.zero_grad()
+            D_real = criterion.discriminator(gt, None)
+            D_real = D_real.mean().sum() * -1
+            D_fake = criterion.discriminator(fake_images.detach(), None)
+            D_fake = D_fake.mean().sum() * 1
+            D_loss = torch.mean(F.relu(1.+D_real)) + \
+                torch.mean(F.relu(1.+D_fake))  # SN-patch-GAN loss
+
+            criterion.D_optimizer.zero_grad()
+            D_loss.backward(retain_graph=True)
+            criterion.D_optimizer.step()
+
+            criterion.writer.add_scalar(
+                'LossD/Discrinimator loss', D_loss.item(), count)     
 
             print('[{}/{}] Generator Loss of epoch{} is {}'.format(k,len(Erase_data),i, G_loss.item()))
 
@@ -134,9 +150,24 @@ for i in range(1, num_epochs + 1):
             G_loss = G_loss.sum()
             G_optimizer.zero_grad()
             G_loss.backward()
-            G_optimizer.step()       
+            G_optimizer.step()   
 
-            print('[{}/{}] Generator Loss of epoch{} is {}'.format(k,len(Erase_data),i, G_loss.item()))
+            criterion.discriminator.zero_grad()
+            D_real = criterion.discriminator(gt, None)
+            D_real = D_real.mean().sum() * -1
+            D_fake = criterion.discriminator(fake_images.detach(), None)
+            D_fake = D_fake.mean().sum() * 1
+            D_loss = torch.mean(F.relu(1.+D_real)) + \
+                torch.mean(F.relu(1.+D_fake))  # SN-patch-GAN loss
+
+            criterion.D_optimizer.zero_grad()
+            D_loss.backward(retain_graph=True)
+            criterion.D_optimizer.step()
+
+            criterion.writer.add_scalar(
+                'LossD/Discrinimator loss', D_loss.item(), count)       
+
+            print('[{}/{}] Generator Loss of epoch{} is {},Discriminator Loss is {}'.format(k,len(Erase_data),i, G_loss.item(),D_loss.item()))
 
             count += 1
 

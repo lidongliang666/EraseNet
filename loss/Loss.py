@@ -121,26 +121,10 @@ class LossWithGAN_STE(nn.Module):
 
 class LossWithGAN_STE_WithoutMask(LossWithGAN_STE):
     def forward(self, input, x_o1, x_o2, x_o3, output, gt, count, epoch):
-        self.discriminator.zero_grad()
-        D_real = self.discriminator(gt, None)
-        D_real = D_real.mean().sum() * -1
-        D_fake = self.discriminator(output, None)
-        D_fake = D_fake.mean().sum() * 1
-        D_loss = torch.mean(F.relu(1.+D_real)) + \
-            torch.mean(F.relu(1.+D_fake))  # SN-patch-GAN loss
-        D_fake = -torch.mean(D_fake)  # SN-Patch-GAN loss
-
-        
-        self.D_optimizer.zero_grad()
-        D_loss.backward(retain_graph=True)
-        self.D_optimizer.step()
-
-
         
 
-        
-        self.writer.add_scalar(
-            'LossD/Discrinimator loss', D_loss.item(), count)
+        G_fake = self.discriminator(output,None)
+        G_loss = -torch.mean(G_fake)  # SN-Patch-GAN loss
 
         # output_comp = mask * input + (1 - mask) * output
        # import pdb;pdb.set_trace()
@@ -183,6 +167,6 @@ class LossWithGAN_STE_WithoutMask(LossWithGAN_STE):
                                prcLoss.item(), count)
         self.writer.add_scalar('LossStyle/style loss', styleLoss.item(), count)
 
-        GLoss = msrloss + holeLoss + prcLoss + styleLoss + 0.1 * D_fake
+        GLoss = msrloss + holeLoss + prcLoss + styleLoss + 0.1 * G_loss
         self.writer.add_scalar('Generator/Joint loss', GLoss.item(), count)
         return GLoss.sum()

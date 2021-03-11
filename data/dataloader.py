@@ -8,7 +8,7 @@ from os.path import join
 from random import randint
 import random
 from PIL import Image
-from torchvision.transforms import Compose, RandomCrop, ToTensor, ToPILImage, Resize, RandomHorizontalFlip
+from torchvision.transforms import Compose, RandomCrop, ToTensor, ToPILImage, Resize, RandomHorizontalFlip,RandomCrop
 
 
 def random_horizontal_flip(imgs):
@@ -35,7 +35,8 @@ def CheckImageFile(filename):
 
 def ImageTransform(loadSize):
     return Compose([
-        Resize(size=loadSize, interpolation=Image.BICUBIC),
+        # Resize(size=loadSize, interpolation=Image.BICUBIC),
+        RandomCrop(size=loadSize),
         ToTensor(),
     ])
 
